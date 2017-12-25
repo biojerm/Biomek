@@ -1,0 +1,70 @@
+Dim PlateCount
+Dim FillVolume
+PlateCount = cInt(World.globals.pauseGenerator.PromptUser("How many plates are you filling, max 12",8))
+FillVolume = cInt(World.globals.pauseGenerator.PromptUser("What is the desired fill volume(uL/well)?", 400))
+
+
+Function CalculateFillSteps(Volume)
+   NumberOfLoops = Volume\MaxTipVol
+   If Volume mod MaxTipVol > 0 Then
+      NumberOfLoops = NumberOfLoops + 1
+   End If
+   
+
+   'I guess this is how you define an Array with no data 
+   ReDim FillArray(NumberOfLoops) 
+   
+
+
+   For i = 0 to NumberOfLoops -1
+      If Volume > MaxTipVol Then
+         FillArray(i) = MaxTipVol
+         Volume = Volume - MaxTipVol
+      Else
+         FillArray(i) = Volume
+      End If
+   Next
+   
+   CalculateFillSteps = FillArray
+End Function 
+
+Function SkipPSeven(position)
+   If position >=6 then
+      SkipPSeven = position+1
+   Else
+      SkipPSeven = position 
+   End If
+End Function
+
+'Returnables!!!
+Dim FillVolSteps
+Dim NumFillSteps
+
+
+For i = 0 to (PlateCount-1) 
+    PlatePos = SkipPSeven(i)
+
+    ' Assay Plates 
+    Positions("P"&PlatePos+1).AddNewLabware "DeepWell_96", World
+    Positions("P"&PlatePos+1).Labware.Properties.Name = "Dest"&i+1
+    Positions("P"&PlatePos+1).Labware.ConfigureAmounts 0
+    Positions("P"&PlatePos+1).Labware.AmountsKnown = True
+Next
+
+
+'Returnables!!
+FillVolSteps = CalculateFillSteps(FillVolume)
+NumFillSteps = UBound(FillVolSteps)
+
+
+World.Globals.PropertyChanger.SetGlobal"PlateCount", PlateCount
+World.Globals.PropertyChanger.SetGlobal"FillVolSteps", FillVolSteps
+World.Globals.PropertyChanger.SetGlobal"NumFillSteps", NumFillSteps
+
+
+'This will allow us to select different tip sizes depending on condition
+'If 10>20 Then
+'    Positions("P5").AddNewLabware "AP96_20ul", World
+'Else
+'    Positions("P5").AddNewLabware "AP96_200ul", World
+'End If

@@ -1,0 +1,39 @@
+' Method to fill deepwell plates 
+
+Set lw = Labware("P7")
+
+'Get current labware volumes
+ResMaxVol = lw.Class.Sections(0).MaxVolume
+CurrentVolume = Positions("P7").labware.GetWellAmount(1)
+
+' The outer if block is less useful in this scirpt but I thought it might be useful 
+'    in the future, so i left it here.  It checks if the plate type is a Reservoir
+
+' The inner if block is used to check that the water is above 20% max volume. 
+' if not the user is prompted and the water level is refilled.
+
+If (lw.Class.Type = "Reservoir") Then
+   If (CurrentVolume < ResMaxVol *0.2) Then
+      LeftPod.GotoPosition "P1" 'see note below about Dynamic?
+      World.Globals.PauseGenerator.StallUntilETSIs 3
+      NewVol = 1000* World.globals.pauseGenerator.PromptUser("The water level is below 20%. Please refill water, and input the new volume in mL" , ResMaxVol/1000)
+      Positions("P7").Labware.ConfigureAmounts NewVol
+   Else
+   End If 
+Else
+   'World.globals.pauseGenerator.PromptUser"It's NOT a Res", 400
+End If
+
+
+' When refilling the water I wanted to move the pod to the P1 position.  However, normally
+'   what was happening is that The move step would get exicuted but then the puase would
+'   happen and prevent the pod from moving.  To fix this I added a new property to the 
+'   script. below is how
+
+   ' 1) Select script in step window to left
+   ' 2) Press Control+Shift+U
+   ' 3) Right ciock root and add value
+   ' 4) Name value "Dynamic?", set it to Boolean  and value is true
+   ' 5) Press Control+Shift+U again
+   
+   
